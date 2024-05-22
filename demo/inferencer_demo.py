@@ -1,8 +1,16 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from argparse import ArgumentParser
 from typing import Dict
+from PIL import Image
+from datetime import datetime
 
 from mmpose.apis.inferencers import MMPoseInferencer, get_model_aliases
+
+import random
+import os
+import numpy as np
+import json
+import copy
 
 filter_args = dict(bbox_thr=0.3, nms_thr=0.3, pose_based_nms=False)
 POSE2D_SPECIFIC_ARGS = dict(
@@ -180,6 +188,16 @@ def parse_args():
         '--show-alias',
         action='store_true',
         help='Display all the available model aliases.')
+    parser.add_argument(
+        '--save-as-coco',
+        type=str,
+        default=None,
+        help='Folder path to save prediction result as COCO')
+    parser.add_argument(
+        '--return-vis',
+        action='store_true',
+        default=False
+    )
 
     call_args = vars(parser.parse_args())
 
@@ -214,8 +232,114 @@ def main():
         display_model_aliases(model_alises)
     else:
         inferencer = MMPoseInferencer(**init_args)
-        for _ in inferencer(**call_args):
-            pass
+        
+        if(call_args['save_as_coco'] is not None):
+            output_folder = call_args['save_as_coco']
+            output_training_annotations = {
+                "info": {
+                    "description": "VirtualMouse",
+                    "version": "1.0",
+                    "year": datetime.now().year,
+                    "date_created": datetime.now().strftime('%Y/%m/%d')
+                },
+                "licenses": "",
+                "images": [],
+                "annotations": [],
+                "categories": [{
+                    "supercategory": "hand",
+                    "id": 1,
+                    "name": "hand",
+                    "keypoints": [
+                        "wrist",
+                        "thumb1",
+                        "thumb2",
+                        "thumb3",
+                        "thumb4",
+                        "forefinger1",
+                        "forefinger2",
+                        "forefinger3",
+                        "forefinger4",
+                        "middle_finger1",
+                        "middle_finger2",
+                        "middle_finger3",
+                        "middle_finger4",
+                        "ring_finger1",
+                        "ring_finger2",
+                        "ring_finger3",
+                        "ring_finger4",
+                        "pinky_finger1",
+                        "pinky_finger2",
+                        "pinky_finger3",
+                        "pinky_finger4"
+                    ]
+                }]
+            }
+
+            output_val_annotations = copy.deepcopy(output_training_annotations)
+
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+                os.makedirs(f'{output_folder}/images')
+                os.makedirs(f'{output_folder}/annotations')
+                os.makedirs(f'{output_folder}/vis')
+
+                output_data = []
+
+                for idx, (ori_inputs, _, results) in enumerate(inferencer(**call_args)):
+                    filename = ''.join(call_args['inputs'].split('.')[:-1]) + f'-{idx}.png'
+                    input_img = Image.fromarray(ori_inputs[0].astype(np.uint8)[..., ::-1])
+                    
+                    if(len(results['predictions']) > 0):
+                        keypoints = results['predictions'][0][0]['keypoints']
+                        bbox = results['predictions'][0][0]['bbox'][0]
+                        visualization = Image.fromarray(results['visualization'][0])
+                        new_keypoints = []
+
+                        for point in keypoints:
+                            new_keypoints.extend(point)
+                            new_keypoints.extend([1])
+
+                        visualization.save(f'{output_folder}/vis/{filename}')
+                        input_img.save(f'{output_folder}/images/{filename}')
+                        output_data.append({
+                            "images": {
+                                "file_name": f'images/{filename}',
+                                "height": ori_inputs[0].shape[0],
+                                "width": ori_inputs[0].shape[1],
+                                "id": idx
+                            },
+                            "annotations": {
+                                "bbox": bbox,
+                                "keypoints": new_keypoints,
+                                "category_id": 1,
+                                "id": idx,
+                                "image_id": idx
+                            }
+                        })
+
+                random.Random(0).shuffle(output_data)
+
+                training_num = int(len(output_data) * 0.8)
+                training_data = output_data[:training_num]
+                val_data = output_data[training_num:]
+
+                output_training_annotations['images'] = list(map(lambda x: x['images'], training_data))
+                output_training_annotations['annotations'] = list(map(lambda x: x['annotations'], training_data))
+                output_val_annotations['images'] = list(map(lambda x: x['images'], val_data))
+                output_val_annotations['annotations'] = list(map(lambda x: x['annotations']), val_data)
+
+
+                with open(f'{output_folder}/annotations/training_annotations.json', 'w', encoding='utf-8') as F:
+                    json.dump(output_training_annotations, F, ensure_ascii=False, indent=4)
+
+                with open(f'{output_folder}/annotations/val_annotations.json', 'w', encoding='utf-8') as F:
+                    json.dump(output_val_annotations, F, ensure_ascii=False, indent=4)
+
+            else:
+                print(f'{output_folder} has already existed.')
+        else:
+            for _ in inferencer(**call_args):
+                pass
 
 
 if __name__ == '__main__':

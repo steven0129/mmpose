@@ -214,7 +214,7 @@ class MMPoseInferencer(BaseMMPoseInferencer):
                 visualization,
                 return_datasamples=return_datasamples,
                 **postprocess_kwargs)
-            yield results
+            yield ori_inputs, proc_inputs, results
 
         if self._video_input:
             self._finalize_video_processing(

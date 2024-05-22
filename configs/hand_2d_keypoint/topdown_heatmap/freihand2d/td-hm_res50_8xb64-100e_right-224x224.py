@@ -61,7 +61,7 @@ model = dict(
 # base dataset settings
 dataset_type = 'FreiHandDataset'
 data_mode = 'topdown'
-data_root = 'mydata/steven-20240516-144223-right/'
+data_root = 'data/freihand/'
 
 # pipelines
 train_pipeline = [

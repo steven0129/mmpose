@@ -532,6 +532,11 @@ class BaseMMPoseInferencer(BaseInferencer):
                 wait_time=wait_time,
                 kpt_thr=kpt_thr,
                 **kwargs)
+            
+            index_coord = pred.pred_instances.keypoints[0, 8]
+            middle_coord = pred.pred_instances.keypoints[0, 12]
+            cv2.putText(visualization, f'Index: ({index_coord[0]:.2f}, {index_coord[1]:.2f})', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(visualization, f'Middle: ({middle_coord[0]:.2f}, {middle_coord[1]:.2f})', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             results.append(visualization)
 
             if vis_out_dir:
