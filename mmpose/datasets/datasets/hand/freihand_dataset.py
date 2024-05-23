@@ -121,7 +121,7 @@ class FreiHandDataset(BaseCocoStyleDataset):
             'keypoints': keypoints,
             'keypoints_visible': keypoints_visible,
             'iscrowd': ann['iscrowd'],
-            'segmentation': ann['segmentation'],
+            # 'segmentation': ann['segmentation'],
             'id': ann['id'],
         }
 

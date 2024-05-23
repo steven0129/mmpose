@@ -326,7 +326,7 @@ def main():
                 output_training_annotations['images'] = list(map(lambda x: x['images'], training_data))
                 output_training_annotations['annotations'] = list(map(lambda x: x['annotations'], training_data))
                 output_val_annotations['images'] = list(map(lambda x: x['images'], val_data))
-                output_val_annotations['annotations'] = list(map(lambda x: x['annotations']), val_data)
+                output_val_annotations['annotations'] = list(map(lambda x: x['annotations'], val_data))
 
 
                 with open(f'{output_folder}/annotations/training_annotations.json', 'w', encoding='utf-8') as F:
