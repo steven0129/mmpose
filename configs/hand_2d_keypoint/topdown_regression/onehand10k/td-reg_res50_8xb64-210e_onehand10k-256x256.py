@@ -61,7 +61,7 @@ model = dict(
 # base dataset settings
 dataset_type = 'OneHand10KDataset'
 data_mode = 'topdown'
-data_root = 'data/onehand10k/'
+data_root = 'data/steven-20240516-144223-left/'
 
 # pipelines
 train_pipeline = [
@@ -84,7 +84,7 @@ val_pipeline = [
 
 # data loaders
 train_dataloader = dict(
-    batch_size=64,
+    batch_size=8,
     num_workers=2,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
@@ -92,13 +92,13 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_mode=data_mode,
-        ann_file='annotations/onehand10k_train.json',
+        ann_file='annotations/training_annotations.json',
         data_prefix=dict(img=''),
         pipeline=train_pipeline,
     ))
 val_dataloader = dict(
-    batch_size=32,
-    num_workers=2,
+    batch_size=1,
+    num_workers=1,
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False, round_up=False),
@@ -106,7 +106,7 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_mode=data_mode,
-        ann_file='annotations/onehand10k_test.json',
+        ann_file='annotations/val_annotations.json',
         data_prefix=dict(img=''),
         test_mode=True,
         pipeline=val_pipeline,
@@ -120,3 +120,8 @@ val_evaluator = [
     dict(type='EPE'),
 ]
 test_evaluator = val_evaluator
+
+visualizer = dict(vis_backends=[
+    dict(type='LocalVisBackend'),
+    dict(type="TensorboardVisBackend")
+])

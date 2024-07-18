@@ -1,4 +1,4 @@
-_base_ = ['../../../_base_/default_runtime.py']
+_base_ = ['../../_base_/default_runtime.py']
 
 # runtime
 max_epochs = 210
@@ -96,9 +96,9 @@ model = dict(
     test_cfg=dict(flip_test=True, ))
 
 # base dataset settings
-dataset_type = 'CocoWholeBodyHandDataset'
+dataset_type = 'FreiHandDataset'
 data_mode = 'topdown'
-data_root = 'data/coco/'
+data_root = 'data/FreiHand/'
 
 backend_args = dict(backend='local')
 # backend_args = dict(
@@ -185,8 +185,8 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_mode=data_mode,
-        ann_file='annotations/coco_wholebody_train_v1.0.json',
-        data_prefix=dict(img='train2017/'),
+        ann_file='annotations/freihand_train.json',
+        data_prefix=dict(img=''),
         pipeline=train_pipeline,
     ))
 val_dataloader = dict(
@@ -199,8 +199,8 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_mode=data_mode,
-        ann_file='annotations/coco_wholebody_val_v1.0.json',
-        data_prefix=dict(img='val2017/'),
+        ann_file='annotations/freihand_val.json',
+        data_prefix=dict(img=''),
         test_mode=True,
         pipeline=val_pipeline,
     ))
